@@ -121,7 +121,7 @@ def amplify_and_cut(input_fa_file, output: Path, quiet=False, **kwargs):
             # (0, 'chrom') (1, 'start') (2, 'end') (3, 'name') (4, 'score') (5, 'strand') (6, 'sequence') (7, 'mismatches') (8, 'mismatches_5') (9, 'mismatches_3')
             # keys: list[str] = ["chrom", "start", "end", "name", "score", "strand", "sequence", "mismatches", "mismatches_5", "mismatches_3"]
             lines = proc_out.stdout.split("\n")
-            print(f"Lines:{lines}")
+            print(f"Lines:{lines}, len: {len(lines)}")
             if len(lines) == 0:
                 if not quiet:
                     print("ERROR: No amplicon returned!")
@@ -134,61 +134,78 @@ def amplify_and_cut(input_fa_file, output: Path, quiet=False, **kwargs):
                     [],
                     '',
                 )
-            amplicons = []
-            for line in lines:
-                if not line.strip():
-                    continue
-                fields: list[str] = line.split("\t")
-                rec_id: str = fields[0]
-                rec_name: str = "rRNA_ITS_amplicon"
-                rec_description: str = f"[{fields[1]}:{fields[2]}] {file_id}_{rec_name} mismatches={fields[7]}({fields[8]}+{fields[9]})"
-                amplicons.append(
-                    SeqRecord.SeqRecord(
-                        seq=Seq.Seq(fields[6]),
-                        id=rec_id,
-                        name=rec_name,
-                        description=rec_description,
+            else:
+                amplicons = []
+                for line in lines:
+                    if not line.strip():
+                        continue
+                    fields: list[str] = line.split("\t")
+                    rec_id: str = fields[0]
+                    rec_name: str = "rRNA_ITS_amplicon"
+                    rec_description: str = f"[{fields[1]}:{fields[2]}] {file_id}_{rec_name} mismatches={fields[7]}({fields[8]}+{fields[9]})"
+                    amplicons.append(
+                        SeqRecord.SeqRecord(
+                            seq=Seq.Seq(fields[6]),
+                            id=rec_id,
+                            name=rec_name,
+                            description=rec_description,
+                        )
                     )
-                )
-                amplicon: SeqRecord = amplicons[0]
-                amplicon_out: int = SeqIO.write(amplicons, outhandle, "fasta")
-                if not quiet:
-                    print(f"{amplicon_out} amplicons written.")
-        # run the digestion but toss out the MseI fragments below 100. (since we're fuzzy matching, drop this to 90bp)
-        HinfI_fragments: list[int] = sorted(
-            {
-                len(frag)
-                for frag in Restriction.HinfI.catalyze(amplicon.seq, linear=True)
-            }
-        )
-        MseI_fragments: list[int] = sorted(
-            {
-                len(frag)
-                for frag in Restriction.MseI.catalyze(amplicon.seq, linear=True)
-                if len(frag) >= 90
-            }
-        )
+                    amplicon: SeqRecord = amplicons[0]
+                    amplicon_out: int = SeqIO.write(amplicons, outhandle, "fasta")
+                    if not quiet:
+                        print(f"{amplicon_out} amplicons written.")
+            # run the digestion but toss out the MseI fragments below 100. (since we're fuzzy matching, drop this to 90bp)
+            HinfI_fragments: list[int] = sorted(
+                {
+                    len(frag)
+                    for frag in Restriction.HinfI.catalyze(amplicon.seq, linear=True)
+                }
+            )
+            MseI_fragments: list[int] = sorted(
+                {
+                    len(frag)
+                    for frag in Restriction.MseI.catalyze(amplicon.seq, linear=True)
+                    if len(frag) >= 90
+                }
+            )
 
-        # this is not optimal but this is the only way I can get it to return types that have been experimentally determined.
-        # bump the tolerance for M_match to 20.
-        H_match: list | None = get_best_pattern(HinfI_fragments, "HinfI", 45)
-        M_match: list | None = get_best_pattern(MseI_fragments, "MseI", 20)
-        if not quiet:
-            print(amplicon.description.split(" ")[-1], len(amplicon.seq))
-            print(f"HinfI fragments: {HinfI_fragments}")
-            print(f"MseI fragments:  {MseI_fragments}")
-            print(f"Matched HinfI Pattern: {H_match}")
-            print(f"Matched MseI Pattern:  {M_match}")
-
-        if not H_match or not M_match:
-            # I want to return 0 if one of the patterns doesn't match
-            # but isn't RST3 anything not 1 or 2? 0 for now to make debugging easier.
+            # this is not optimal but this is the only way I can get it to return types that have been experimentally determined.
+            # bump the tolerance for M_match to 20.
+            H_match: list | None = get_best_pattern(HinfI_fragments, "HinfI", 45)
+            M_match: list | None = get_best_pattern(MseI_fragments, "MseI", 20)
             if not quiet:
-                print("Error: Novel fragment pattern detected!")
-                # should make it always output all fragments
-                # TODO: see above
+                print(amplicon.description.split(" ")[-1], len(amplicon.seq))
+                print(f"HinfI fragments: {HinfI_fragments}")
+                print(f"MseI fragments:  {MseI_fragments}")
+                print(f"Matched HinfI Pattern: {H_match}")
+                print(f"Matched MseI Pattern:  {M_match}")
+
+            if not H_match or not M_match:
+                # I want to return 0 if one of the patterns doesn't match
+                # but isn't RST3 anything not 1 or 2? 0 for now to make debugging easier.
+                if not quiet:
+                    print("Error: Novel fragment pattern detected!")
+                    # should make it always output all fragments
+                    # TODO: see above
+                return (
+                    0,
+                    HinfI_fragments,
+                    MseI_fragments,
+                    H_match,
+                    M_match,
+                    amplicons,
+                    amplicon,
+                )
+
+            for rst, (hpat, mpat) in RST_TYPES.items():
+                if hpat in H_match and mpat in M_match:
+                    called_RST: int = rst
+            if not quiet:
+                print(f"Matched RST: {called_RST}")
+
             return (
-                0,
+                called_RST,
                 HinfI_fragments,
                 MseI_fragments,
                 H_match,
@@ -196,22 +213,6 @@ def amplify_and_cut(input_fa_file, output: Path, quiet=False, **kwargs):
                 amplicons,
                 amplicon,
             )
-
-        for rst, (hpat, mpat) in RST_TYPES.items():
-            if hpat in H_match and mpat in M_match:
-                called_RST: int = rst
-        if not quiet:
-            print(f"Matched RST: {called_RST}")
-
-        return (
-            called_RST,
-            HinfI_fragments,
-            MseI_fragments,
-            H_match,
-            M_match,
-            amplicons,
-            amplicon,
-        )
 
 
 def main():
