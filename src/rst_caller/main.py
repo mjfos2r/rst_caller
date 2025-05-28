@@ -130,8 +130,8 @@ def amplify_and_cut(input_fa_file, output: Path, quiet=False, **kwargs):
                     [],
                     'NaN',
                     'NaN',
-                    amplicons,
-                    amplicon,
+                    [],
+                    '',
                 )
             amplicons = []
             for line in lines:
