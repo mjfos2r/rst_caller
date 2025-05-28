@@ -144,7 +144,7 @@ def amplify_and_cut(input_fa_file, output: Path, quiet=False, **kwargs):
             if not quiet:
                 print("ERROR: No amplicon returned!")
             return (
-                0,
+                'NoAMP',
                 [],
                 [],
                 'NaN',
