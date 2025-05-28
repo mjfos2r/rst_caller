@@ -17,6 +17,7 @@ ENV PATH="/root/.local/bin/:$PATH"
 RUN mkdir -p /app/rst_caller /data
 ADD --checksum=sha256:d8b160af8548639691a6f2ad153bff068c8047a3f99f61ea16ee50cf2e793dab https://github.com/shenwei356/seqkit/releases/download/v2.10.0/seqkit_linux_amd64.tar.gz /tmp/seqkit_linux_amd64.tar.gz
 RUN tar -xzf /tmp/seqkit_linux_amd64.tar.gz -C /usr/local/bin --strip-components=1 --no-same-owner \
+    && chmod +x /usr/local/bin/seqkit \
     && rm /tmp/seqkit_linux_amd64.tar.gz
 WORKDIR /app/rst_caller
 COPY . .
