@@ -140,6 +140,18 @@ def amplify_and_cut(input_fa_file, output: Path, quiet=False, **kwargs):
                 amplicon_out: int = SeqIO.write(amplicons, outhandle, "fasta")
                 if not quiet:
                     print(f"{amplicon_out} amplicons written.")
+        if len(amplicons.seq) == 0:
+            if not quiet:
+                print("ERROR: No amplicon returned!")
+            return (
+                0,
+                [],
+                [],
+                'NaN',
+                'NaN',
+                amplicons,
+                amplicon,
+            )
         # run the digestion but toss out the MseI fragments below 100. (since we're fuzzy matching, drop this to 90bp)
         HinfI_fragments: list[int] = sorted(
             {
