@@ -29,7 +29,6 @@ WORKDIR /app
 RUN uv venv
 ENV PATH="/app/.venv/bin:$PATH"
 RUN uv pip install -e rst_caller/
-RUN echo $PATH && exit 1
-RUN uv run rst_caller --version
+RUN rst_caller --version
 WORKDIR /data
 ENTRYPOINT [ "/bin/bash" ]
