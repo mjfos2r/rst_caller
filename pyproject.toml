@@ -1,0 +1,34 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rst_caller"
+dynamic = ["version"]
+description = "tool to perform insilico RFLP for the determination of rRNA ITS type in B. burgdorferi genome assemblies."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Michael J. Foster", email = "TBD@no.co"},
+]
+dependencies = [
+    "biopython>=1.84",
+]
+
+[project.optional-dependencies]
+dev = [
+    "uv>=0.7.8",
+    "ruff>=0.11.2"
+]
+
+[project.scripts]
+rst_caller = "rst_caller.main:main"
+
+[tool.hatch.version]
+path = "src/rst_caller/__about__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/rst_caller/**/*",
+]
