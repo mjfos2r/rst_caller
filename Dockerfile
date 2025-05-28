@@ -21,13 +21,11 @@ RUN curl -LsS https://github.com/shenwei356/seqkit/releases/download/v2.10.0/seq
 RUN [ "$(md5sum '/tmp/seqkit_linux_amd64.tar.gz' | awk '{print $1}')" = "$(awk '{print $1}' /tmp/seqkit_linux_amd64.tar.gz.md5.txt)" ]\
     && { echo -e "\033[0;32mChecksum valid!\033[0m"; tar -xzf /tmp/seqkit_linux_amd64.tar.gz -C /usr/local/bin --strip-components=1 --no-same-owner; rm /tmp/seqkit_linux_amd64.tar.gz; } \
     || { echo -e "\033[0;31mChecksum invalid!\033[0m"; exit 1; }
-
-RUN seqkit version
 WORKDIR /app/rst_caller
 COPY . .
 WORKDIR /app
 RUN uv venv
-ENV PATH="/app/.venv/bin:$PATH"
+ENV PATH="/app/.venv/bin:/usr/local/bin:$PATH"
 RUN uv pip install -e rst_caller/
 RUN uv run rst_caller --version
 WORKDIR /data
