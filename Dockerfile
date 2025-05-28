@@ -23,12 +23,13 @@ RUN [ "$(md5sum '/tmp/seqkit_linux_amd64.tar.gz' | awk '{print $1}')" = "$(awk '
     && rm /tmp/seqkit_linux_amd64.tar.gz \
     || { echo -e "\033[0;31mChecksum invalid!\033[0m"; exit 1; }
 
+RUN seqkit version
 WORKDIR /app/rst_caller
 COPY . .
 WORKDIR /app
 RUN uv venv
 ENV PATH="/app/.venv/bin:$PATH"
 RUN uv pip install -e rst_caller/
-RUN rst_caller --version
+RUN uv run rst_caller --version
 WORKDIR /data
 ENTRYPOINT [ "/bin/bash" ]
