@@ -30,6 +30,7 @@ RFLP_PATTERNS: dict[str, list[int]] = {
     "M1": [258, 149, 136, 128, 102],
     "M2": [364, 258, 136, 102],
 }
+
 RST_TYPES: dict[int : list[str]] = {
     1: ["H1", "M1"],
     2: ["H2", "M2"],
@@ -113,7 +114,7 @@ def amplify_and_cut(input_fa_file, output: Path, quiet=False, **kwargs):
             text=True,
             capture_output=True,
         )
-        output_file = output / f"{file_id}_RFLP_RST_AMPLICON.fna"
+        output_file = output / f"{file_id}_AMPLICON.fna"
         with open(output_file, "w") as outhandle:
             # convert to BED6+1 to add coordinates to header?
             # let's try it.
@@ -229,7 +230,7 @@ def main():
         "--quiet",
         action="store_true",
         required=False,
-        default="store_false",
+        default=False,
         help="Suppress verbose output to stdout.",
     )
     args = parser.parse_args()
