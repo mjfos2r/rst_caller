@@ -15,10 +15,14 @@ RUN apt-get update && apt-get install -y \
 
 ENV PATH="/root/.local/bin/:$PATH"
 RUN mkdir -p /app/rst_caller /data
-# need sha256sum to use --checksum=sha256:d8b160af8548639691a6f2ad153bff068c8047a3f99f61ea16ee50cf2e793dab
-ADD https://github.com/shenwei356/seqkit/releases/download/v2.10.0/seqkit_linux_amd64.tar.gz /tmp/seqkit_linux_amd64.tar.gz
-RUN tar -xzf /tmp/seqkit_linux_amd64.tar.gz -C /usr/local/bin --strip-components=1 --no-same-owner \
-    && rm /tmp/seqkit_linux_amd64.tar.gz
+RUN curl -qO- https://github.com/shenwei356/seqkit/releases/download/v2.10.0/seqkit_linux_amd64.tar.gz >/tmp/seqkit_linux_amd64.tar.gz \
+    && curl -qO- https://github.com/shenwei356/seqkit/releases/download/v2.10.0/seqkit_linux_amd64.tar.gz.md5.txt >/tmp/seqkit_linux_amd64.tar.gz.md5.txt
+
+RUN [[ $(md5sum "/tmp/seqkit_linux_amd64.tar.gz" | awk '{print $1}') == $(awk '{print $1}' /tmp/seqkit_linux_amd64.tar.gz.md5.txt) ]]\
+    && tar -xzf /tmp/seqkit_linux_amd64.tar.gz -C /usr/local/bin --strip-components=1 --no-same-owner \
+    && rm /tmp/seqkit_linux_amd64.tar.gz \
+    || { echo -e "\033[0;31mChecksum invalid!\033[0m"; exit 1; }
+
 WORKDIR /app/rst_caller
 COPY . .
 WORKDIR /app
@@ -26,6 +30,6 @@ RUN uv venv
 ENV PATH="/app/.venv/bin:$PATH"
 RUN uv pip install -e rst_caller/
 RUN echo $PATH && exit 1
-RUN rst_caller --version
+RUN uv run rst_caller --version
 WORKDIR /data
 ENTRYPOINT [ "/bin/bash" ]
