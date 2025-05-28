@@ -1,0 +1,8 @@
+*
+.venv
+notes
+test_out
+!README.md
+!src
+!pyproject.toml
+!Dockerfile
