@@ -140,7 +140,7 @@ def amplify_and_cut(input_fa_file, output: Path, quiet=False, **kwargs):
                 amplicon_out: int = SeqIO.write(amplicons, outhandle, "fasta")
                 if not quiet:
                     print(f"{amplicon_out} amplicons written.")
-        if len(amplicons.seq) == 0:
+        if len(amplicon.seq) == 0:
             if not quiet:
                 print("ERROR: No amplicon returned!")
             return (
