@@ -18,7 +18,7 @@ RUN mkdir -p /app/rst_caller /data
 RUN curl -LsS https://github.com/shenwei356/seqkit/releases/download/v2.10.0/seqkit_linux_amd64.tar.gz >/tmp/seqkit_linux_amd64.tar.gz \
     && curl -LsS https://github.com/shenwei356/seqkit/releases/download/v2.10.0/seqkit_linux_amd64.tar.gz.md5.txt >/tmp/seqkit_linux_amd64.tar.gz.md5.txt
 
-RUN [[ $(md5sum "/tmp/seqkit_linux_amd64.tar.gz" | awk '{print $1}') == $(awk '{print $1}' /tmp/seqkit_linux_amd64.tar.gz.md5.txt) ]]\
+RUN [ "$(md5sum '/tmp/seqkit_linux_amd64.tar.gz' | awk '{print $1}')" = "$(awk '{print $1}' /tmp/seqkit_linux_amd64.tar.gz.md5.txt)" ]\
     && tar -xzf /tmp/seqkit_linux_amd64.tar.gz -C /usr/local/bin --strip-components=1 --no-same-owner \
     && rm /tmp/seqkit_linux_amd64.tar.gz \
     || { echo -e "\033[0;31mChecksum invalid!\033[0m"; exit 1; }
