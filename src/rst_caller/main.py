@@ -121,6 +121,7 @@ def amplify_and_cut(input_fa_file, output: Path, quiet=False, **kwargs):
             # (0, 'chrom') (1, 'start') (2, 'end') (3, 'name') (4, 'score') (5, 'strand') (6, 'sequence') (7, 'mismatches') (8, 'mismatches_5') (9, 'mismatches_3')
             # keys: list[str] = ["chrom", "start", "end", "name", "score", "strand", "sequence", "mismatches", "mismatches_5", "mismatches_3"]
             lines = proc_out.stdout.split("\n")
+            print(f"Lines:{lines}")
             if len(lines) == 0:
                 if not quiet:
                     print("ERROR: No amplicon returned!")
