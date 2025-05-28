@@ -140,7 +140,7 @@ def amplify_and_cut(input_fa_file, output: Path, quiet=False, **kwargs):
                 amplicon_out: int = SeqIO.write(amplicons, outhandle, "fasta")
                 if not quiet:
                     print(f"{amplicon_out} amplicons written.")
-        # run the digestion but toss out the MseI fragments below 100.
+        # run the digestion but toss out the MseI fragments below 100. (since we're fuzzy matching, drop this to 90bp)
         HinfI_fragments: list[int] = sorted(
             {
                 len(frag)
@@ -151,13 +151,14 @@ def amplify_and_cut(input_fa_file, output: Path, quiet=False, **kwargs):
             {
                 len(frag)
                 for frag in Restriction.MseI.catalyze(amplicon.seq, linear=True)
-                if len(frag) >= 100
+                if len(frag) >= 90
             }
         )
 
         # this is not optimal but this is the only way I can get it to return types that have been experimentally determined.
+        # bump the tolerance for M_match to 20.
         H_match: list | None = get_best_pattern(HinfI_fragments, "HinfI", 45)
-        M_match: list | None = get_best_pattern(MseI_fragments, "MseI", 17)
+        M_match: list | None = get_best_pattern(MseI_fragments, "MseI", 20)
         if not quiet:
             print(amplicon.description.split(" ")[-1], len(amplicon.seq))
             print(f"HinfI fragments: {HinfI_fragments}")
