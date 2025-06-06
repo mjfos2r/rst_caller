@@ -58,7 +58,7 @@ def _ensure_deps() -> str:
             text=True,
             capture_output=True,
         )
-        return version.stdout
+        return version.stdout.strip()
 
 
 def _existing_file(path_str: str) -> Path:
