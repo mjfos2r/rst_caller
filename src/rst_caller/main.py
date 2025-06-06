@@ -169,8 +169,8 @@ def amplify_and_cut(input_fa_file, output: Path, quiet=False, **kwargs):
         )
 
         # this is not optimal but this is the only way I can get it to return types that have been experimentally determined.
-        # bump the tolerance for M_match to 20.
-        H_match: list | None = get_best_pattern(HinfI_fragments, "HinfI", 45)
+        # bump the tolerance for M_match to 20. and H_match to 50
+        H_match: list | None = get_best_pattern(HinfI_fragments, "HinfI", 50)
         M_match: list | None = get_best_pattern(MseI_fragments, "MseI", 20)
         if not quiet:
             print(amplicon.description.split(" ")[-1], len(amplicon.seq))
